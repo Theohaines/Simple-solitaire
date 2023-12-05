@@ -1,10 +1,10 @@
 //Command line stuff
 const commandEntry = document.getElementById("commandEntry");
-const terminal = document.getElementById("terminal")
+const terminal = document.getElementById("terminal");
 
 //Suits
-var suits = ["C", "S", "H", "D"]
-var cardValue = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+var suits = ["C", "S", "H", "D"];
+var cardValue = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
 //Deck
 var deck = [];
@@ -29,18 +29,14 @@ function debugDeck(){
 }
 
 function debugTableau(){
-	for (var column in tableau){
-		for (var card in column){
-			printToTerminal(tableau[column[card]]);
-		}
-	}
+    for (let column of tableau) {
+        printToTerminal("?? ".repeat(column.length - 1) + column[column.length - 1]);
+    } 
 }
 
 function processCommand(){
 	if (commandEntry.value.toLowerCase() == "p"){
 		printToTerminal("debug text");
-	} else if (commandEntry.value.toLowerCase() == "start" || commandEntry.value.toLowerCase() == "s") {
-		startGame();
 	} else if (commandEntry.value.toLowerCase() == "start" || commandEntry.value.toLowerCase() == "s") {
 		startGame();
 	} else if (commandEntry.value.toLowerCase() == "debugdeck" || commandEntry.value.toLowerCase() == "d") {
