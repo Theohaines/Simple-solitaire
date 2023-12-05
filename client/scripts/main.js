@@ -2,15 +2,32 @@
 const commandEntry = document.getElementById("commandEntry");
 const terminal = document.getElementById("terminal");
 
-//Suits
-var suits = ["C", "S", "H", "D"];
-var cardValue = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-
-//Deck
+//Deck and stock
 var deck = [];
+var stock = [];
 
-//Table
+//Tableau
 var tableau = [[], [], [], [], [], [], []];
+
+//Card class
+class Card{
+	static suits = ["C", "S", "H", "D"];
+	static values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+	constructor(suit, cardValue, hidden){
+		this.suit = suit;
+		this.cardValue = cardValue;
+		this.hidden = hidden;
+	}
+
+	toString(){
+		if (this.hidden){
+			return "??";
+		}
+
+		return this.cardValue + this.suit;
+	}
+}
 
 function printToTerminal(textToPrint){
 	var linebreak = document.createElement("br");
@@ -22,16 +39,25 @@ function clearTerminal(){
 }
 
 function debugDeck(){
-	for (var card in deck){
-		printToTerminal(deck[card]);
-		printToTerminal(deck.length);
+	for (var card of deck){
+		printToTerminal(card.toString());
 	}
 }
 
 function debugTableau(){
     for (let column of tableau) {
-        printToTerminal("?? ".repeat(column.length - 1) + column[column.length - 1]);
+        var cardColumn = "";
+		for (let card of column){
+			cardColumn = cardColumn + card.toString() + " ";
+		}
+		printToTerminal(cardColumn);
     } 
+}
+
+function debugStock(){
+	for (var card of stock){
+		printToTerminal(card.toString());
+	}
 }
 
 function processCommand(){
@@ -39,8 +65,14 @@ function processCommand(){
 		printToTerminal("debug text");
 	} else if (commandEntry.value.toLowerCase() == "start" || commandEntry.value.toLowerCase() == "s") {
 		startGame();
+	} else if (commandEntry.value.toLowerCase() == "clear" || commandEntry.value.toLowerCase() == "c") {
+		clearTerminal();
 	} else if (commandEntry.value.toLowerCase() == "debugdeck" || commandEntry.value.toLowerCase() == "d") {
 		debugDeck();
+	} else if (commandEntry.value.toLowerCase() == "draw deck") {
+		drawDeck();
+	} else if (commandEntry.value.toLowerCase() == "ls stock") {
+		debugStock();
 	} else {
 		printToTerminal("No command found. Try 'help'")
 	}
@@ -55,9 +87,9 @@ function startGame(){
 
 function buildDeck(){
 	printToTerminal("Building deck...");
-	for (var suit in suits){
-		for (let i = 0; i < cardValue.length; i++) {
-			deck.push(suits[suit] + cardValue[i]);
+	for (var suit of Card.suits){
+		for (var value of Card.values) {
+			deck.push(new Card(suit, value, true));
 		} 
 	}
 	printToTerminal("Built deck!");
@@ -88,14 +120,30 @@ function dealDeck(){
 	for (var column in tableau){
 		for (let i = 0; i < cardsToAdd; i++) {
 			var rand = Math.floor(Math.random() * deck.length);
+			if (i == cardsToAdd - 1){
+				deck[rand].hidden = false;
+			}
 			tableau[column].push(deck[rand]);
-			deck.splice(deck.indexOf(rand, 1));
+			deck.splice(rand, 1);
 		}
 		cardsToAdd++;
 	}
 
 	debugTableau();
-	//debugDeck();
+	debugDeck();
+}
+
+function drawDeck(){
+	if(stock.length != 0){
+		deck.push(stock[0])
+	}
+	stock.shift()
+	deck.shift(stock[0]);
+	stock.push(deck[0]);
+	stock[0].hidden = false;
+
+	printToTerminal(deck.length);
+	printToTerminal("Card in stock: " + stock[0].toString());
 }
 
 commandEntry.addEventListener('keydown', (e) => {
