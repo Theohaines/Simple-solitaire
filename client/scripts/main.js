@@ -14,10 +14,11 @@ class Card{
 	static suits = ["C", "S", "H", "D"];
 	static values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
-	constructor(suit, cardValue, hidden){
+	constructor(suit, cardValue, hidden, inStock){
 		this.suit = suit;
 		this.cardValue = cardValue;
 		this.hidden = hidden;
+		this.inStock = inStock;
 	}
 
 	toString(){
@@ -73,6 +74,8 @@ function processCommand(){
 		drawDeck();
 	} else if (commandEntry.value.toLowerCase() == "ls stock") {
 		debugStock();
+	} else if (commandEntry.value.toLowerCase() == "move") {
+		debugStock();
 	} else {
 		printToTerminal("No command found. Try 'help'")
 	}
@@ -89,7 +92,7 @@ function buildDeck(){
 	printToTerminal("Building deck...");
 	for (var suit of Card.suits){
 		for (var value of Card.values) {
-			deck.push(new Card(suit, value, true));
+			deck.push(new Card(suit, value, true, false)); //Suit | Card value | Is hidden | In Stock
 		} 
 	}
 	printToTerminal("Built deck!");
@@ -135,15 +138,21 @@ function dealDeck(){
 
 function drawDeck(){
 	if(stock.length != 0){
+		stock[0].inStock = false
 		deck.push(stock[0])
 	}
 	stock.shift()
 	deck.shift(stock[0]);
 	stock.push(deck[0]);
 	stock[0].hidden = false;
+	stock[0].inStock = true;
 
 	printToTerminal(deck.length);
 	printToTerminal("Card in stock: " + stock[0].toString());
+}
+
+function MoveCard(){
+
 }
 
 commandEntry.addEventListener('keydown', (e) => {
