@@ -220,14 +220,18 @@ function moveCard(command){
 
 	// complete move
 	
-	var RemoveFrom = findWhereCardIsFrom(cardToMove);
+	var removeFrom = findWhereCardIsFrom(cardToMove);
 	var Moveto = findWhereCardIsFrom(cardToMoveTo);
 
 	// printToTerminal(Moveto);
 	// printToTerminal(RemoveFrom);
 
 	Moveto.push(cardToMove);
-	RemoveFrom.splice(cardToMove, 1);
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 }
 
 function checkCardExistance(card){
