@@ -235,8 +235,11 @@ function moveCard(command){
 	var removeFrom = findWhereCardIsFrom(cardToMove);
 	var Moveto = findWhereCardIsFrom(cardToMoveTo);
 
-	// printToTerminal(Moveto);
-	// printToTerminal(RemoveFrom);
+	// Moving multiple cards
+	if (removeFrom[removeFrom.length - 1] != cardToMove){
+		var cardsToMove = removeFrom.length - cardToMove.index;
+		printToTerminal(cardsToMove);
+	}
 
 	Moveto.push(cardToMove);
 	var index = removeFrom.indexOf(cardToMove);
@@ -340,8 +343,6 @@ function checkMoveValidity(cardToMove, cardToMoveTo){
 		}
 	}
 
-	printToTerminal(cardToMoveTo);
-
 	//Check if card to move it is column
 	if (cardToMoveTo == "column"){
 		if (cardToMove.rank == "K"){
@@ -377,7 +378,7 @@ function checkMoveValidity(cardToMove, cardToMoveTo){
 	//Check if card is in descending order
 	var isCardDescending = checkCardDescendingOrder(cardToMove, cardToMoveTo);
 	if (!isCardDescending){
-		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one lower than itself.");
+		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one higher than itself.");
 		return;
 	}
 
@@ -418,6 +419,25 @@ function moveToBuildPile(cardToMove, cardToMoveTo){
 		return;
 	}
 
+	isCardAscending = checkCardAscendingOrder(cardToMove, cardToMoveTo);
+	if (!isCardAscending){
+		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one lower than itself.");
+		return;
+	}
+
+	var removeFrom = findWhereCardIsFrom(cardToMove);
+	var moveTo = findWhereCardIsFrom(cardToMoveTo);
+
+	moveTo.push(cardToMove);
+
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
 }
 
 function moveKingToEmptyColumn(cardToMove){
