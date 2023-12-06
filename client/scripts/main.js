@@ -179,14 +179,26 @@ function dealDeck(){
 }
 
 function drawDeck(){
-	if(stock.length != 0){
+	// if(stock.length != 0){
+	// 	stock[0].hidden = true;
+	// 	stock[0].inStock = false
+	// 	deck.push(stock[0])
+	// }
+	// stock.shift()
+	// deck.shift(stock[0]);
+	// stock.push(deck[0]);
+	// stock[0].hidden = false;
+	// stock[0].inStock = true;
+
+	if (stock.length != 0){
 		stock[0].hidden = true;
-		stock[0].inStock = false
-		deck.push(stock[0])
+		stock.inStock = false;
+		deck.push(stock[0]);
+		stock.splice(0, 1);
 	}
-	stock.shift()
-	deck.shift(stock[0]);
 	stock.push(deck[0]);
+	var index = deck.indexOf(stock[0]);
+	deck.splice(index, 1)
 	stock[0].hidden = false;
 	stock[0].inStock = true;
 
@@ -231,11 +243,17 @@ function moveCard(command){
 	removeFrom.splice(index, 1);
 
 	//Update column we took card from
-	CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
 }
 
 function checkCardExistance(card){
 	if (card.toLowerCase() == "buildpile"){
+		return true;
+	}
+
+	if (card.toLowerCase() == "column"){
 		return true;
 	}
 
@@ -272,6 +290,14 @@ function checkCardExistance(card){
 }
 
 function getCardReference(card){
+	if (card.toLowerCase() == "buildpile"){
+		return "buildpile";
+	}
+
+	if (card.toLowerCase() == "column"){
+		return "column";
+	}
+
 	for (var deckcard of deck){
 		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
 			return deckcard;
@@ -300,10 +326,26 @@ function getCardReference(card){
 }
 
 function checkMoveValidity(cardToMove, cardToMoveTo){
+	//Check if card is locked
+	if (cardToMove.locked){
+		printToTerminal("You can't move this card because it is locked to its current position. (Ace is already in build pile).")
+		return false;
+	}
+
 	//Check if card is ace (Auto move to build pile and then lock its movement)
 	if(cardToMove.rank == "A"){
 		if (cardToMove.hidden == false){
 			moveAceToBuildPile(cardToMove, cardToMoveTo);
+			return false;
+		}
+	}
+
+	printToTerminal(cardToMoveTo);
+
+	//Check if card to move it is column
+	if (cardToMoveTo == "column"){
+		if (cardToMove.rank == "K"){
+			moveKingToEmptyColumn(cardToMove);
 			return false;
 		}
 	}
@@ -352,6 +394,8 @@ function moveAceToBuildPile(cardToMove){
 		}
 	}
 
+	cardToMove.locked = true;
+
 	var removeFrom = findWhereCardIsFrom(cardToMove);
 
 	buildPileToMoveTo.push(cardToMove);
@@ -361,7 +405,9 @@ function moveAceToBuildPile(cardToMove){
 
 	//Update column we took card from
 	
-	CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
 }
 
 function moveToBuildPile(cardToMove, cardToMoveTo){
@@ -372,6 +418,29 @@ function moveToBuildPile(cardToMove, cardToMoveTo){
 		return;
 	}
 
+}
+
+function moveKingToEmptyColumn(cardToMove){
+	//This is the process for moving kings to empty piles
+
+	for (var column of tableau){
+		if (column.length == 0){
+			var columnToMoveTo = column;
+			break;
+		}
+	}
+
+	var removeFrom = findWhereCardIsFrom(cardToMove);
+
+	columnToMoveTo.push(cardToMove);
+
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
 }
 
 function checkCardDescendingOrder(cardToMove, cardToMoveTo){
@@ -385,23 +454,23 @@ function checkCardDescendingOrder(cardToMove, cardToMoveTo){
 		return true;
 	} else if (cardToMove.rank == "9" && cardToMoveTo.rank == "10"){
 		return true;
-	}  else if (cardToMove.rank == "8" && cardToMoveTo.rank == "9"){
+	} else if (cardToMove.rank == "8" && cardToMoveTo.rank == "9"){
 		return true;
-	}  else if (cardToMove.rank == "7" && cardToMoveTo.rank == "8"){
+	} else if (cardToMove.rank == "7" && cardToMoveTo.rank == "8"){
 		return true;
-	}  else if (cardToMove.rank == "6" && cardToMoveTo.rank == "7"){
+	} else if (cardToMove.rank == "6" && cardToMoveTo.rank == "7"){
 		return true;
-	}  else if (cardToMove.rank == "5" && cardToMoveTo.rank == "6"){
+	} else if (cardToMove.rank == "5" && cardToMoveTo.rank == "6"){
 		return true;
-	}  else if (cardToMove.rank == "4" && cardToMoveTo.rank == "5"){
+	} else if (cardToMove.rank == "4" && cardToMoveTo.rank == "5"){
 		return true;
-	}  else if (cardToMove.rank == "3" && cardToMoveTo.rank == "2"){
+	} else if (cardToMove.rank == "3" && cardToMoveTo.rank == "4"){
 		return true;
-	}  else if (cardToMove.rank == "2" && cardToMoveTo.rank == "A"){
+	} else if (cardToMove.rank == "2" && cardToMoveTo.rank == "3"){
 		return true;
-	}  else if (cardToMove.rank == "A" && cardToMoveTo.rank == "2"){
-		// CAN ONLY BE MOVED TO BUILD PILE AND 2
-	} 
+	} else if (cardToMove.rank == "A" && cardToMoveTo.rank == "2"){
+		return true;
+	}
 	return false;
 }
 
@@ -452,7 +521,7 @@ function findWhereCardIsFrom(card){
 	}
 
 	for (var column of buildPile){
-		for (var buildcard of card){
+		for (var buildcard of column){
 			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
 				return column;
 			}
