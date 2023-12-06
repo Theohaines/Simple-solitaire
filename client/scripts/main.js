@@ -6,8 +6,9 @@ const terminal = document.getElementById("terminal");
 var deck = [];
 var stock = [];
 
-//Tableau
+//Tableau and build pile
 var tableau = [[], [], [], [], [], [], []];
+var buildPile = [[], [], [], []];
 
 //Card class
 class Card{
@@ -41,7 +42,9 @@ function clearTerminal(){
 
 function debugDeck(){
 	for (var card of deck){
+		card.hidden = false;
 		printToTerminal(card.toString());
+		card.hidden = true;
 	}
 }
 
@@ -61,6 +64,17 @@ function debugStock(){
 	}
 }
 
+function lsCmd(command){
+	command = command.replace("ls", "").trim(); // Remove ls part of cmd and all whitespace
+
+	if(command == "stock"){
+		debugStock();
+	} else {
+		printToTerminal("Incorrect usage of ls. Try 'help'")
+	}
+	commandEntry.value = '';
+}
+
 function processCommand(){
 	if (commandEntry.value.toLowerCase() == "p"){
 		printToTerminal("debug text");
@@ -72,10 +86,10 @@ function processCommand(){
 		debugDeck();
 	} else if (commandEntry.value.toLowerCase() == "draw deck") {
 		drawDeck();
-	} else if (commandEntry.value.toLowerCase() == "ls stock") {
-		debugStock();
-	} else if (commandEntry.value.toLowerCase() == "move") {
-		debugStock();
+	} else if (commandEntry.value.toLowerCase().includes("ls")) {
+		lsCmd(commandEntry.value.toLowerCase());
+	} else if (commandEntry.value.toLowerCase().includes("move")) {
+		moveCard(commandEntry.value.toLowerCase());
 	} else {
 		printToTerminal("No command found. Try 'help'")
 	}
@@ -131,9 +145,6 @@ function dealDeck(){
 		}
 		cardsToAdd++;
 	}
-
-	debugTableau();
-	debugDeck();
 }
 
 function drawDeck(){
@@ -147,11 +158,35 @@ function drawDeck(){
 	stock[0].hidden = false;
 	stock[0].inStock = true;
 
-	printToTerminal(deck.length);
-	printToTerminal("Card in stock: " + stock[0].toString());
+	printToTerminal("Drawn card: " + stock[0].toString());
 }
 
-function MoveCard(){
+function moveCard(command){
+	command = command.replace("move ", ""); // Remove move part of cmd
+	var cards = command.split(" ");
+
+	if (cards.length != 2){
+		printToTerminal("Incorrect usage of move. Try 'help'")
+		return;
+	}
+
+/* 	for (var card of cards){
+		if(checkCardExistance(card.toUpperCase()) == false){
+			printToTerminal("Incorrect usage of move. perhaps you entered an invalid card?");
+			return;
+		}
+	} */
+}
+
+function checkCardExistance(card){
+	if (deck.indexOf(card) == -1){
+		return false;
+	} else {
+		return true;
+	}
+}
+
+function checkMoveValidity(){
 
 }
 
