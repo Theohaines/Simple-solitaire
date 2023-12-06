@@ -13,13 +13,14 @@ var buildPile = [[], [], [], []];
 //Card class
 class Card{
 	static suits = ["C", "S", "H", "D"];
-	static values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+	static ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
-	constructor(suit, cardValue, hidden, inStock){
+	constructor(suit, rank, hidden, inStock, inBuild){
 		this.suit = suit;
-		this.cardValue = cardValue;
+		this.rank = rank;
 		this.hidden = hidden;
 		this.inStock = inStock;
+		this.inBuild = inBuild;
 	}
 
 	toString(hiddenOverride){
@@ -27,7 +28,7 @@ class Card{
 			return "??";
 		}
 
-		return this.cardValue + this.suit;
+		return this.rank + this.suit;
 	}
 }
 
@@ -46,11 +47,11 @@ function debugDeck(){
 	}
 }
 
-function debugTableau(){
+function debugTableau(hiddenOverride){
     for (let column of tableau) {
         var cardColumn = "";
 		for (let card of column){
-			cardColumn = cardColumn + card.toString(true) + " ";
+			cardColumn = cardColumn + card.toString(hiddenOverride) + " ";
 		}
 		printToTerminal(cardColumn);
     } 
@@ -67,6 +68,8 @@ function lsCmd(command){
 
 	if(command == "stock"){
 		debugStock();
+	} else if (command == "tableau"){
+		debugTableau();
 	} else {
 		printToTerminal("Incorrect usage of ls. Try 'help'")
 	}
@@ -79,7 +82,7 @@ function debugCmd(command){
 	if(command == "deck"){
 		debugDeck();
 	} else if (command == "tableau"){
-		debugTableau();
+		debugTableau(true);
 	} else {
 		printToTerminal("Incorrect usage of debug. Try 'help'")
 	}
@@ -93,10 +96,10 @@ function processCommand(){
 		startGame();
 	} else if (commandEntry.value.toLowerCase() == "clear" || commandEntry.value.toLowerCase() == "c") {
 		clearTerminal();
-	} else if (commandEntry.value.toLowerCase().includes("debug")) {
-		debugCmd(commandEntry.value.toLowerCase());
 	} else if (commandEntry.value.toLowerCase() == "draw deck") {
 		drawDeck();
+	} else if (commandEntry.value.toLowerCase().includes("debug")) {
+		debugCmd(commandEntry.value.toLowerCase());
 	} else if (commandEntry.value.toLowerCase().includes("ls")) {
 		lsCmd(commandEntry.value.toLowerCase());
 	} else if (commandEntry.value.toLowerCase().includes("move")) {
@@ -116,8 +119,8 @@ function startGame(){
 function buildDeck(){
 	printToTerminal("Building deck...");
 	for (var suit of Card.suits){
-		for (var value of Card.values) {
-			deck.push(new Card(suit, value, true, false)); //Suit | Card value | Is hidden | In Stock
+		for (var rank of Card.ranks) {
+			deck.push(new Card(suit, rank, true, false, false)); //Suit | Card value | Is hidden | In Stock
 		} 
 	}
 	printToTerminal("Built deck!");
@@ -160,6 +163,7 @@ function dealDeck(){
 
 function drawDeck(){
 	if(stock.length != 0){
+		stock[0].hidden = true;
 		stock[0].inStock = false
 		deck.push(stock[0])
 	}
@@ -188,9 +192,8 @@ function moveCard(command){
 		}
 	}
 
-	// If these cards do exist we assign them their own vars to make managing them easier
-	var cardToMove = cards[0];
-	var cardToMoveTo = cards[1];
+	var cardToMove = getCardReference(cards[0]);
+	var cardToMoveTo = getCardReference(cards[1]);
 
 	//Now we check the move validity
 	isMoveValid = checkMoveValidity(cardToMove, cardToMoveTo);
@@ -208,9 +211,11 @@ function checkCardExistance(card){
 		}
 	}
 
-	for (var tableaucard of tableau){
-		if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return true;
+	for (var column of tableau){
+		for (var tableaucard of column){
+			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return true;
+			}
 		}
 	}
 
@@ -228,12 +233,96 @@ function checkCardExistance(card){
 	return false;
 }
 
+function getCardReference(card){
+	for (var deckcard of deck){
+		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return deckcard;
+		}
+	}
+
+	for (var column of tableau){
+		for (var tableaucard of column){
+			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return tableaucard;
+			}
+		}
+	}
+
+	for (var buildcard of buildPile){
+		if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return buildcard;
+		}
+	}
+
+	for (var stockcard of stock){
+		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return stockcard;
+		}
+	}
+}
+
 function checkMoveValidity(cardToMove, cardToMoveTo){
 	//Check if card is hidden (If card is hidden then it cannot be moved)
-	if (cardToMove.hidden || cardToMoveTo.hidden){
+	if (cardToMove.hidden == true || cardToMoveTo.hidden == true){
 		printToTerminal("You cannot move to that position because your card(s) is (are) hidden");
 		return false;
 	}
+
+	//Check if card to move to is in build pile (check process is diffirent so it would be inefficient to go through entire check)
+	if (cardToMoveTo.inBuild){
+		printToTerminal("Cards have same suit");
+		// Gonna have to implement seperate function to check if the move is compatible and return true of false
+	}
+
+	// Check if card types are compatible
+	if (cardToMove.suit == "C" || cardToMove.suit == "S"){
+		if (cardToMoveTo.suit == "C" || cardToMoveTo.suit == "S"){
+			printToTerminal("You cannot move to that position because your card suits clash (CS / DH)");
+			return false;
+		}
+	} else if (cardToMove.suit == "D" || cardToMove.suit == "H") {
+		if (cardToMoveTo.suit == "D" || cardToMoveTo.suit == "H"){
+			printToTerminal("You cannot move to that position because your card suits clash (CS / DH)");
+			return false;
+		}
+	}
+
+	//Check if card is in descending order
+	var isCardDescending = checkCardDescendingOrder(cardToMove, cardToMoveTo);
+	if (!isCardDescending){
+		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one lower than itself.");
+	}
+}
+
+function checkCardDescendingOrder(cardToMove, cardToMoveTo){
+	if(cardToMove.rank == "K"){
+		// CAN ONLY BE MOVED TO EMPTY SPACE
+	} else if (cardToMove.rank == "Q" && cardToMoveTo.rank == "K"){
+		return true;
+	} else if (cardToMove.rank == "J" && cardToMoveTo.rank == "Q"){
+		return true;
+	} else if (cardToMove.rank == "10" && cardToMoveTo.rank == "J"){
+		return true;
+	} else if (cardToMove.rank == "9" && cardToMoveTo.rank == "10"){
+		return true;
+	}  else if (cardToMove.rank == "8" && cardToMoveTo.rank == "9"){
+		return true;
+	}  else if (cardToMove.rank == "7" && cardToMoveTo.rank == "8"){
+		return true;
+	}  else if (cardToMove.rank == "6" && cardToMoveTo.rank == "7"){
+		return true;
+	}  else if (cardToMove.rank == "5" && cardToMoveTo.rank == "6"){
+		return true;
+	}  else if (cardToMove.rank == "4" && cardToMoveTo.rank == "5"){
+		return true;
+	}  else if (cardToMove.rank == "3" && cardToMoveTo.rank == "2"){
+		return true;
+	}  else if (cardToMove.rank == "2" && cardToMoveTo.rank == "A"){
+		return true;
+	}  else if (cardToMove.rank == "A" && cardToMoveTo.rank == "2"){
+		// CAN ONLY BE MOVED TO BUILD PILE AND 2
+	} 
+	return false;
 }
 
 commandEntry.addEventListener('keydown', (e) => {
