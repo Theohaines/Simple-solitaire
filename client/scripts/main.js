@@ -22,8 +22,8 @@ class Card{
 		this.inStock = inStock;
 	}
 
-	toString(){
-		if (this.hidden){
+	toString(hiddenOverride){
+		if (this.hidden && hiddenOverride == undefined){
 			return "??";
 		}
 
@@ -42,9 +42,7 @@ function clearTerminal(){
 
 function debugDeck(){
 	for (var card of deck){
-		card.hidden = false;
-		printToTerminal(card.toString());
-		card.hidden = true;
+		printToTerminal(card.toString(true));
 	}
 }
 
@@ -52,7 +50,7 @@ function debugTableau(){
     for (let column of tableau) {
         var cardColumn = "";
 		for (let card of column){
-			cardColumn = cardColumn + card.toString() + " ";
+			cardColumn = cardColumn + card.toString(true) + " ";
 		}
 		printToTerminal(cardColumn);
     } 
@@ -60,7 +58,7 @@ function debugTableau(){
 
 function debugStock(){
 	for (var card of stock){
-		printToTerminal(card.toString());
+		printToTerminal(card.toString(true));
 	}
 }
 
@@ -75,6 +73,19 @@ function lsCmd(command){
 	commandEntry.value = '';
 }
 
+function debugCmd(command){
+	command = command.replace("debug", "").trim(); // Remove ls part of cmd and all whitespace
+
+	if(command == "deck"){
+		debugDeck();
+	} else if (command == "tableau"){
+		debugTableau();
+	} else {
+		printToTerminal("Incorrect usage of debug. Try 'help'")
+	}
+	commandEntry.value = '';
+}
+
 function processCommand(){
 	if (commandEntry.value.toLowerCase() == "p"){
 		printToTerminal("debug text");
@@ -82,8 +93,8 @@ function processCommand(){
 		startGame();
 	} else if (commandEntry.value.toLowerCase() == "clear" || commandEntry.value.toLowerCase() == "c") {
 		clearTerminal();
-	} else if (commandEntry.value.toLowerCase() == "debugdeck" || commandEntry.value.toLowerCase() == "d") {
-		debugDeck();
+	} else if (commandEntry.value.toLowerCase().includes("debug")) {
+		debugCmd(commandEntry.value.toLowerCase());
 	} else if (commandEntry.value.toLowerCase() == "draw deck") {
 		drawDeck();
 	} else if (commandEntry.value.toLowerCase().includes("ls")) {
@@ -166,28 +177,63 @@ function moveCard(command){
 	var cards = command.split(" ");
 
 	if (cards.length != 2){
-		printToTerminal("Incorrect usage of move. Try 'help'")
+		printToTerminal("Incorrect usage of move. Try 'help'");
 		return;
 	}
 
-/* 	for (var card of cards){
-		if(checkCardExistance(card.toUpperCase()) == false){
-			printToTerminal("Incorrect usage of move. perhaps you entered an invalid card?");
+	for (var card of cards){ //Checks if the entered 'cards' are cards that exist 
+		if (checkCardExistance(card) == false){
+			printToTerminal("Incorrect usage of move. Perhaps you entered an invalid card?");
 			return;
 		}
-	} */
+	}
+
+	// If these cards do exist we assign them their own vars to make managing them easier
+	var cardToMove = cards[0];
+	var cardToMoveTo = cards[1];
+
+	//Now we check the move validity
+	isMoveValid = checkMoveValidity(cardToMove, cardToMoveTo);
+	if (!isMoveValid){
+		return;
+	}
+
+	// complete move
 }
 
 function checkCardExistance(card){
-	if (deck.indexOf(card) == -1){
-		return false;
-	} else {
-		return true;
+	for (var deckcard of deck){
+		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return true;
+		}
 	}
+
+	for (var tableaucard of tableau){
+		if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return true;
+		}
+	}
+
+	for (var buildcard of buildPile){
+		if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return true;
+		}
+	}
+
+	for (var stockcard of stock){
+		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return true;
+		}
+	}
+	return false;
 }
 
-function checkMoveValidity(){
-
+function checkMoveValidity(cardToMove, cardToMoveTo){
+	//Check if card is hidden (If card is hidden then it cannot be moved)
+	if (cardToMove.hidden || cardToMoveTo.hidden){
+		printToTerminal("You cannot move to that position because your card(s) is (are) hidden");
+		return false;
+	}
 }
 
 commandEntry.addEventListener('keydown', (e) => {
