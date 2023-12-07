@@ -12,7 +12,6 @@ var moves = 0;
 
 //Timer vars
 var [milliseconds,seconds,minutes,hours] = [0,0,0,0];
-var timerRef = document.querySelector('.timerDisplay');
 var int = null;
 
 //Deck and stock
@@ -108,8 +107,8 @@ function processCommand(){
 		startGame();
 	} else if (commandEntry.value.toLowerCase() == "clear") {
 		clearTerminal();
-	} else if (commandEntry.value.toLowerCase() == "help") {
-		helpCmd();
+	} else if (commandEntry.value.toLowerCase().includes("help")) {
+		helpCmd(commandEntry.value.toLowerCase());
 	} else if (commandEntry.value.toLowerCase() == "draw deck") {
 		drawDeck();
 	} else if (commandEntry.value.toLowerCase().includes("debug")) {
@@ -126,8 +125,78 @@ function processCommand(){
 	commandEntry.value = '';
 }
 
-function helpCmd(){
+function helpCmd(command){
+	command = command.replace("help", "").trim(); // Remove help part of cmd and all whitespace
 
+	if(command == "basics"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ You win the game by moving all cards to the build pile");
+		printToTerminal("+ (or a stack of cards that starts with a king).");
+		printToTerminal("+ If you get an empty column, you can start a new column with a king. Any new column must be started with a king.");
+		printToTerminal("+ Stacks of cards may be moved from one column to another aslong as they manintain the same order. (Highest to lowest, alternating colors (C & S to H & D))");
+		printToTerminal("+ For example if it was 9 of hearts, you could but an 8 of spades or clubs onto it.")
+		printToTerminal("+ To move a card to a column, it must be one less in rank and the opposite color (color isn't avaliable here (C & S to H & D)).");
+		printToTerminal("+ Cards that are face up and showing may be moved from the stock pile or the columns to the foundation stacks or to other columns");
+		printToTerminal("+ The objective of solitaire is simple, move all your cards to their respective build piles.");
+		printToTerminal(`===========================================================================`);
+	} else if (command == "attributes"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ attributes");
+		printToTerminal("+ help");
+		printToTerminal("+ clear");
+		printToTerminal("+ start");
+		printToTerminal("+ color");
+		printToTerminal("+ draw deck");
+		printToTerminal("+ ls");
+		printToTerminal("+ move");
+		printToTerminal("+ basics");
+		printToTerminal("+ These are all the attributes for the help command: (usage 'help [attribute]')");
+		printToTerminal(`===========================================================================`);
+	} else if (command == "move"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ The same goes for the ace cards. if you want to move an ace to the build pile you would write 'move ac buildpile'. This automaticaly moves it to the first empty build pile.");
+		printToTerminal("+ If you want to move a king onto an empty column space in the tableau you would do 'move kh column'. This moves it to the first empty column");
+		printToTerminal("+ There are some deviations to how you use this command though.")
+		printToTerminal("+ The command structure looks like this: 'move [card you want to move] [card or position you want to move it to]'.");
+		printToTerminal("+ For example if you wanted to move an eight of spades to do 9 of hearts you would write 'move 8S 9H'");
+		printToTerminal("+ The move command is used to move cards to different positions on the table. ");
+		printToTerminal(`===========================================================================`);
+	} else if (command == "ls"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ stock");
+		printToTerminal("+ buildpile");
+		printToTerminal("+ tableau");
+		printToTerminal("+ This command has multiple attributes which are listed below. (usage 'ls [attribute]').");
+		printToTerminal("+ The ls command is used to display certain elements in the game. for example 'ls tableau' will display the tableau");
+		printToTerminal(`===========================================================================`);
+	} else if (command == "draw deck"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ Only one card can be drawn at a time and drawing multiple times removes the last drawn card from the stock and places it at the bottom of the deck");
+		printToTerminal("+ This command has no attributes. When used it will automaticaly print the card you drew. (if you clear the terminal you can do 'ls stock' to see the card you drew again)");
+		printToTerminal("+ The draw deck command draws the top card from the deck and places it in the stock.");
+		printToTerminal(`===========================================================================`);
+	} else if (command == "color"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ Useage of this command is as follows 'ls [0-9]'.")
+		printToTerminal("+ The color command can be used to change the color of text in the terminal.");
+		printToTerminal(`===========================================================================`);
+	} else if (command == "start"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ It has no attributes. Usage is as follows 'start'.")
+		printToTerminal("+ The start command is used to start a new game and end the existing game if there is one.")
+		printToTerminal(`===========================================================================`);
+	} else if (command == "clear"){
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ It has no attributes. Usage is as follows 'clear'.")
+		printToTerminal("+ The clear command is used to clear all text from the terminal.")
+		printToTerminal(`===========================================================================`);
+	} else {
+		printToTerminal(`===========================================================================`);
+		printToTerminal("+ The help command is used to find out how features within the game work, for example 'help basics' can be used to learn the basics of the game.");
+		printToTerminal("+ The help command has several different attributes that can be used to learn how diffirent features work. To see a list of all the help attributes type the command 'help attributes'.");
+		printToTerminal(`===========================================================================`);
+	}
+	commandEntry.value = '';
 }
 
 //Commandlets
@@ -201,17 +270,15 @@ function colorCmd(command){
 //Start game
 function startGame(){
 	clearTerminal();
+	resetSavedValues();
 	buildDeck();
 	shuffleDeck();
 	dealDeck();
 
 	//Display the table
 	clearTerminal();
+	gameTimer();
 	debugTableau();
-}
-
-function restartGame(){
-
 }
 
 //Building table
@@ -335,6 +402,7 @@ function moveCard(command){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
 
+	checkIfGameIsWon();
 	debugTableau();
 }
 
@@ -363,7 +431,7 @@ function moveAceToBuildPile(cardToMove){
 	if (removeFrom.length != 0){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
-
+	checkIfGameIsWon();
 	debugTableau();
 }
 
@@ -399,6 +467,7 @@ function moveToBuildPile(cardToMove, cardToMoveTo){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
 
+	checkIfGameIsWon();
 	debugTableau();
 }
 
@@ -429,6 +498,7 @@ function moveKingToEmptyColumn(cardToMove){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
 
+	checkIfGameIsWon();
 	debugTableau();
 }
 
@@ -442,6 +512,7 @@ function MoveMultipleCards(removeFrom, cardToMove, Moveto){
 			removeFrom.splice(index, 1);
 		}
 
+		checkIfGameIsWon();
 		debugTableau();
 		return;
 	}
@@ -718,7 +789,23 @@ function checkIfGameIsWon(){
 }
 
 function gameHasBeenWon(){
+	clearInterval(int);
+	let h = hours < 10 ? "0" + hours : hours;
+	let m = minutes < 10 ? "0" + minutes : minutes;
+	let s = seconds < 10 ? "0" + seconds : seconds;
+	let ms = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
 
+	clearTerminal();
+	printToTerminal("##########[END]##########");
+	printToTerminal("(Type start to play again.)");
+	printToTerminal("#########################");
+	printToTerminal("Score: " + score.toString());
+	printToTerminal("Moves: " + moves.toString());
+	printToTerminal("Time: " + ` ${h} : ${m} : ${s} : ${ms}`);
+	printToTerminal("Your scores:");
+	printToTerminal("#########################");
+	printToTerminal("Congratulations! You have won!");
+	printToTerminal("#########################");
 }
 
 // Game functions
@@ -740,12 +827,25 @@ function displayTimer(){
 			}
 		}
 	}
-	let h = hours < 10 ? "0" + hours : hours;
-	let m = minutes < 10 ? "0" + minutes : minutes;
-	let s = seconds < 10 ? "0" + seconds : seconds;
-	let ms = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
+}
 
-	printToTerminal(` ${h} : ${m} : ${s} : ${ms}`);
+function resetTimer(){
+	clearInterval(int);
+    [milliseconds,seconds,minutes,hours] = [0,0,0,0];
+}
+
+function resetSavedValues(){
+	score = 0;
+	gameInProgress = false;
+	moves = 0;
+
+	deck = [];
+	stock = [];
+
+	tableau = [[], [], [], [], [], [], []];
+	buildPile = [[], [], [], []];
+
+	resetTimer();
 }
 
 //Welcome screen
