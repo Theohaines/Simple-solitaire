@@ -2,6 +2,10 @@
 const commandEntry = document.getElementById("commandEntry");
 const terminal = document.getElementById("terminal");
 
+//Game vars
+var score = 0;
+var gameInProgress = false;
+
 //Deck and stock
 var deck = [];
 var stock = [];
@@ -136,277 +140,6 @@ function processCommand(){
 	commandEntry.value = '';
 }
 
-function startGame(){
-	buildDeck();
-	shuffleDeck();
-	dealDeck();
-}
-
-function buildDeck(){
-	printToTerminal("Building deck...");
-	for (var suit of Card.suits){
-		for (var rank of Card.ranks) {
-			deck.push(new Card(suit, rank, true, false, false, false)); //Suit | Card value | Is hidden | In Stock
-		} 
-	}
-	printToTerminal("Built deck!");
-
-	//debugDeck();
-}
-
-function shuffleDeck(){
-	printToTerminal("Shuffling deck...");
-	var i = deck.length, temp, rand;
-
-	while (0 !== i){
-		rand = Math.floor(Math.random() * i);
-		i--;
-
-		temp = deck[i];
-		deck[i] = deck[rand];
-		deck[rand] = temp;
-	}
-	printToTerminal("Shuffled deck!");
-	//debugDeck();
-}
-
-function dealDeck(){
-	//Lay Tableau
-	//Setup temp vars
-	var cardsToAdd = 1;
-	for (var column in tableau){
-		for (let i = 0; i < cardsToAdd; i++) {
-			var rand = Math.floor(Math.random() * deck.length);
-			if (i == cardsToAdd - 1){
-				deck[rand].hidden = false;
-			}
-			tableau[column].push(deck[rand]);
-			deck.splice(rand, 1);
-		}
-		cardsToAdd++;
-	}
-}
-
-function drawDeck(){
-	// if(stock.length != 0){
-	// 	stock[0].hidden = true;
-	// 	stock[0].inStock = false
-	// 	deck.push(stock[0])
-	// }
-	// stock.shift()
-	// deck.shift(stock[0]);
-	// stock.push(deck[0]);
-	// stock[0].hidden = false;
-	// stock[0].inStock = true;
-
-	if (stock.length != 0){
-		stock[0].hidden = true;
-		stock.inStock = false;
-		deck.push(stock[0]);
-		stock.splice(0, 1);
-	}
-	stock.push(deck[0]);
-	var index = deck.indexOf(stock[0]);
-	deck.splice(index, 1)
-	stock[0].hidden = false;
-	stock[0].inStock = true;
-
-	printToTerminal("Drawn card: " + stock[0].toString());
-}
-
-function moveCard(command){
-	command = command.replace("move ", ""); // Remove move part of cmd
-	var cards = command.split(" ");
-
-	if (cards.length != 2){
-		printToTerminal("Incorrect usage of move. Try 'help'");
-		return;
-	}
-
-	for (var card of cards){ //Checks if the entered 'cards' are cards that exist 
-		if (checkCardExistance(card) == false){
-			printToTerminal("Incorrect usage of move. Perhaps you entered an invalid card?");
-			return;
-		}
-	}
-
-	var cardToMove = getCardReference(cards[0]);
-	var cardToMoveTo = getCardReference(cards[1]);
-
-	//Now we check the move validity
-	isMoveValid = checkMoveValidity(cardToMove, cardToMoveTo);
-	if (!isMoveValid){
-		return;
-	}
-
-	// complete move
-	
-	var removeFrom = findWhereCardIsFrom(cardToMove);
-	var Moveto = findWhereCardIsFrom(cardToMoveTo);
-
-	if (removeFrom == Moveto){
-		printToTerminal("Can't move card to the same place its in");
-		return;
-	}
-
-	// Moving multiple cards (PLEASE NEVER REWORK I DONT UNDERSTAND HOW THIS WORKS)
-	if (removeFrom[removeFrom.length - 1] != cardToMove){
-		var cardsToMove = removeFrom.length - removeFrom.indexOf(cardToMove);
-		cardsToSwap = removeFrom.slice(-cardsToMove);
-		for (var card of cardsToSwap){
-			Moveto.push(card);
-			var index = removeFrom.indexOf(card);
-			removeFrom.splice(index, 1);
-		}
-		return;
-	}
-
-	Moveto.push(cardToMove);
-	var index = removeFrom.indexOf(cardToMove);
-	removeFrom.splice(index, 1);
-
-	//Update column we took card from
-	if (removeFrom.length != 0){
-		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
-	}
-}
-
-function checkCardExistance(card){
-	if (card.toLowerCase() == "buildpile"){
-		return true;
-	}
-
-	if (card.toLowerCase() == "column"){
-		return true;
-	}
-
-	for (var deckcard of deck){
-		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return true;
-		}
-	}
-
-	for (var column of tableau){
-		for (var tableaucard of column){
-			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-				return true;
-			}
-		}
-	}
-
-	for (var column of buildPile){
-		for (var buildcard of column){
-			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-				return true;
-			}
-		}
-	}
-
-
-	for (var stockcard of stock){
-		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return true;
-		}
-	}
-
-	return false;
-}
-
-function getCardReference(card){
-	if (card.toLowerCase() == "buildpile"){
-		return "buildpile";
-	}
-
-	if (card.toLowerCase() == "column"){
-		return "column";
-	}
-
-	for (var deckcard of deck){
-		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return deckcard;
-		}
-	}
-
-	for (var column of tableau){
-		for (var tableaucard of column){
-			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-				return tableaucard;
-			}
-		}
-	}
-
-	for (var buildcard of buildPile){
-		if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return buildcard;
-		}
-	}
-
-	for (var stockcard of stock){
-		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return stockcard;
-		}
-	}
-}
-
-function checkMoveValidity(cardToMove, cardToMoveTo){
-	//Check if card is locked
-	if (cardToMove.locked){
-		printToTerminal("You can't move this card because it is locked to its current position. (Ace is already in build pile).")
-		return false;
-	}
-
-	//Check if card is ace (Auto move to build pile and then lock its movement)
-	if(cardToMove.rank == "A"){
-		if (cardToMove.hidden == false){
-			moveAceToBuildPile(cardToMove, cardToMoveTo);
-			return false;
-		}
-	}
-
-	//Check if card to move if it is column
-	if (cardToMoveTo == "column"){
-		if (cardToMove.rank == "K"){
-			moveKingToEmptyColumn(cardToMove);
-			return false;
-		}
-	}
-
-	//Check if card is hidden (If card is hidden then it cannot be moved)
-	if (cardToMove.hidden == true || cardToMoveTo.hidden == true){
-		printToTerminal("You cannot move to that position because your card(s) is (are) hidden");
-		return false;
-	}
-
-	//Check if card to move to is in build pile (check process is diffirent so it would be inefficient to go through entire check)
-	printToTerminal(cardToMoveTo);
-	printToTerminal(cardToMoveTo.rank);
-	if (cardToMoveTo == "AS" || cardToMoveTo == "AC" || cardToMoveTo == "AH" || cardToMoveTo == "AD"){
-		moveToBuildPile(cardToMove, cardToMoveTo);
-	}
-
-	// Check if card types are compatible
-	if (cardToMove.suit == "C" || cardToMove.suit == "S"){
-		if (cardToMoveTo.suit == "C" || cardToMoveTo.suit == "S"){
-			printToTerminal("You cannot move to that position because your card suits clash (CS / DH)");
-			return false;
-		}
-	} else if (cardToMove.suit == "D" || cardToMove.suit == "H") {
-		if (cardToMoveTo.suit == "D" || cardToMoveTo.suit == "H"){
-			printToTerminal("You cannot move to that position because your card suits clash (CS / DH)");
-			return false;
-		}
-	}
-
-	//Check if card is in descending order
-	var isCardDescending = checkCardDescendingOrder(cardToMove, cardToMoveTo);
-	if (!isCardDescending){
-		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one higher than itself.");
-		return;
-	}
-
-	return true;
-}
-
 function moveAceToBuildPile(cardToMove){
 	//This is the process to move an ace to a build pile
 
@@ -436,7 +169,6 @@ function moveAceToBuildPile(cardToMove){
 
 function moveToBuildPile(cardToMove, cardToMoveTo){
 	//This is the process to move a card to a build pile
-
 	if (cardToMove.suit != cardToMoveTo.suit){
 		printToTerminal("I don't know how we got here this shouldn't be possible.");
 		return;
@@ -620,6 +352,366 @@ function MoveMultipleCards(removeFrom, cardToMove, Moveto){
 	}
 }
 
+//Game play functions (start game, movement, win)
+
+//Start game
+function startGame(){
+	buildDeck();
+	shuffleDeck();
+	dealDeck();
+}
+
+//Building table
+function buildDeck(){
+	printToTerminal("Building deck...");
+	for (var suit of Card.suits){
+		for (var rank of Card.ranks) {
+			deck.push(new Card(suit, rank, true, false, false, false)); //Suit | Card value | Is hidden | In Stock
+		} 
+	}
+	printToTerminal("Built deck!");
+}
+
+function shuffleDeck(){
+	printToTerminal("Shuffling deck...");
+	var i = deck.length, temp, rand;
+
+	while (0 !== i){
+		rand = Math.floor(Math.random() * i);
+		i--;
+
+		temp = deck[i];
+		deck[i] = deck[rand];
+		deck[rand] = temp;
+	}
+	printToTerminal("Shuffled deck!");
+}
+
+function dealDeck(){
+	//Lay Tableau
+	//Setup temp vars
+	var cardsToAdd = 1;
+	for (var column in tableau){
+		for (let i = 0; i < cardsToAdd; i++) {
+			var rand = Math.floor(Math.random() * deck.length);
+			if (i == cardsToAdd - 1){
+				deck[rand].hidden = false;
+			}
+			tableau[column].push(deck[rand]);
+			deck.splice(rand, 1);
+		}
+		cardsToAdd++;
+	}
+}
+
+// Drawing cards from the deck
+function drawDeck(){
+	if (stock.length != 0){
+		stock[0].hidden = true;
+		stock.inStock = false;
+		deck.push(stock[0]);
+		stock.splice(0, 1);
+	}
+	stock.push(deck[0]);
+	var index = deck.indexOf(stock[0]);
+	deck.splice(index, 1)
+	stock[0].hidden = false;
+	stock[0].inStock = true;
+
+	printToTerminal("Drawn card: " + stock[0].toString());
+}
+
+//Card movement
+function moveCard(command){
+	command = command.replace("move ", ""); // Remove move part of cmd
+	var cards = command.split(" ");
+
+	//Checks if the play has entered 2 values
+	if (cards.length != 2){
+		printToTerminal("Incorrect usage of move. Try 'help'");
+		return;
+	}
+
+	//Checks if the entered 'cards' are cards that exist 
+	for (var card of cards){
+		if (checkCardExistance(card) == false){
+			printToTerminal("Incorrect usage of move. Perhaps you entered an invalid card?");
+			return;
+		}
+	}
+
+	//Gets an actual reference to the card
+	var cardToMove = getCardReference(cards[0]);
+	var cardToMoveTo = getCardReference(cards[1]);
+
+	//Now we check the move validity
+	isMoveValid = checkMoveValidity(cardToMove, cardToMoveTo);
+	if (!isMoveValid){
+		return;
+	}
+
+	//Finds where the cards are from
+	var removeFrom = findWhereCardIsFrom(cardToMove);
+	var Moveto = findWhereCardIsFrom(cardToMoveTo);
+
+	//Stop player from moveing the card to somewhere it already is
+	if (removeFrom == Moveto){
+		printToTerminal("Can't move card to the same place its in");
+		return;
+	}
+
+	// Moving multiple cards (PLEASE NEVER REWORK I DONT UNDERSTAND HOW THIS WORKS)
+	if (removeFrom[removeFrom.length - 1] != cardToMove){
+		var cardsToMove = removeFrom.length - removeFrom.indexOf(cardToMove);
+		cardsToSwap = removeFrom.slice(-cardsToMove);
+		for (var card of cardsToSwap){
+			Moveto.push(card);
+			var index = removeFrom.indexOf(card);
+			removeFrom.splice(index, 1);
+		}
+		return;
+	}
+
+	//Remove old card and add new ones
+	Moveto.push(cardToMove);
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
+}
+
+function moveAceToBuildPile(cardToMove){
+	//This is the process to move an ace to a build pile
+
+	for (var column of buildPile){
+		if (column.length == 0){
+			var buildPileToMoveTo = column;
+			break;
+		}
+	}
+
+	cardToMove.locked = true;
+	cardToMove.inBuild = true;
+
+	var removeFrom = findWhereCardIsFrom(cardToMove);
+
+	buildPileToMoveTo.push(cardToMove);
+
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
+}
+
+function moveToBuildPile(cardToMove, cardToMoveTo){
+	//This is the process to move a card to a build pile
+	if (cardToMove.suit != cardToMoveTo.suit){
+		printToTerminal("I don't know how we got here this shouldn't be possible.");
+		return;
+	}
+
+	isCardAscending = checkCardAscendingOrder(cardToMove, cardToMoveTo);
+	if (!isCardAscending){
+		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one lower than itself.");
+		return;
+	}
+
+	var removeFrom = findWhereCardIsFrom(cardToMove);
+	var moveTo = findWhereCardIsFrom(cardToMoveTo);
+
+	if (checkCardsOnTop(removeFrom, cardToMove)){
+		printToTerminal("You cannot move this to the build pile as it has cards on top of it.")
+		return;
+	}
+
+	moveTo.push(cardToMove);
+
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
+}
+
+function moveKingToEmptyColumn(cardToMove){
+	//This is the process for moving kings to empty piles
+
+	for (var column of tableau){
+		if (column.length == 0){
+			var columnToMoveTo = column;
+			break;
+		}
+	}
+
+	var removeFrom = findWhereCardIsFrom(cardToMove);
+
+	if (checkCardsOnTop(removeFrom, cardToMove)){
+		MoveMultipleCards(removeFrom, cardToMove, columnToMoveTo);
+		return;
+	}
+
+	columnToMoveTo.push(cardToMove);
+
+	var index = removeFrom.indexOf(cardToMove);
+	removeFrom.splice(index, 1);
+
+	//Update column we took card from
+	if (removeFrom.length != 0){
+		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+	}
+}
+
+//Validity checks
+function checkCardExistance(card){
+	if (card.toLowerCase() == "buildpile"){
+		return true;
+	}
+
+	if (card.toLowerCase() == "column"){
+		return true;
+	}
+
+	for (var deckcard of deck){
+		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return true;
+		}
+	}
+
+	for (var column of tableau){
+		for (var tableaucard of column){
+			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return true;
+			}
+		}
+	}
+
+	for (var column of buildPile){
+		for (var buildcard of column){
+			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return true;
+			}
+		}
+	}
+
+
+	for (var stockcard of stock){
+		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function checkMoveValidity(cardToMove, cardToMoveTo){
+	//Check if card is locked
+	if (cardToMove.locked){
+		printToTerminal("You can't move this card because it is locked to its current position. (Ace is already in build pile).")
+		return false;
+	}
+
+	//Check if card is ace (Auto move to build pile and then lock its movement)
+	if(cardToMove.rank == "A"){
+		if (cardToMove.hidden == false){
+			moveAceToBuildPile(cardToMove, cardToMoveTo);
+			return false;
+		}
+	}
+
+	//Check if card to move if it is column
+	if (cardToMoveTo == "column"){
+		if (cardToMove.rank == "K"){
+			moveKingToEmptyColumn(cardToMove);
+			return false;
+		}
+	}
+
+	//Check if card is hidden (If card is hidden then it cannot be moved)
+	if (cardToMove.hidden == true || cardToMoveTo.hidden == true){
+		printToTerminal("You cannot move to that position because your card(s) is (are) hidden");
+		return false;
+	}
+
+	//Check if card to move to is in build pile (check process is diffirent so it would be inefficient to go through entire check)
+	if (cardToMoveTo == "AS" || cardToMoveTo == "AC" || cardToMoveTo == "AH" || cardToMoveTo == "AD"){
+		moveToBuildPile(cardToMove, cardToMoveTo);
+		return false;
+	}
+
+	// Check if card types are compatible
+	if (cardToMove.suit == "C" || cardToMove.suit == "S"){
+		if (cardToMoveTo.suit == "C" || cardToMoveTo.suit == "S"){
+			printToTerminal("You cannot move to that position because your card suits clash (CS / DH)");
+			return false;
+		}
+	} else if (cardToMove.suit == "D" || cardToMove.suit == "H") {
+		if (cardToMoveTo.suit == "D" || cardToMoveTo.suit == "H"){
+			printToTerminal("You cannot move to that position because your card suits clash (CS / DH)");
+			return false;
+		}
+	}
+
+	//Check if card is in descending order
+	var isCardDescending = checkCardDescendingOrder(cardToMove, cardToMoveTo);
+	if (!isCardDescending){
+		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one higher than itself.");
+		return;
+	}
+
+	return true;
+}
+
+//Card manipulation
+function getCardReference(card){
+	if (card.toLowerCase() == "buildpile"){
+		return "buildpile";
+	}
+
+	if (card.toLowerCase() == "column"){
+		return "column";
+	}
+
+	for (var deckcard of deck){
+		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return deckcard;
+		}
+	}
+
+	for (var column of tableau){
+		for (var tableaucard of column){
+			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return tableaucard;
+			}
+		}
+	}
+
+	for (var column of buildPile){
+		for (var buildcard of column){
+			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return buildcard;
+			}
+		}
+	}
+
+	for (var stockcard of stock){
+		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return stockcard;
+		}
+	}
+}
+
+
+// EVENTS
 commandEntry.addEventListener('keydown', (e) => {
 	if (e.key === 'Enter' || e.keyCode === 13) { // using keycode for old browsers
 		processCommand();
