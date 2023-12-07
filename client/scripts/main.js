@@ -3,7 +3,7 @@ const commandEntry = document.getElementById("commandEntry");
 const terminal = document.getElementById("terminal");
 
 //Terminal vars
-var terminalTextColor = "##1bc615";
+var terminalTextColor = "#1bc615";
 
 //Game vars
 var score = 0;
@@ -43,11 +43,11 @@ class Card{
 
 //Terminal stuff (Printing and clearing)
 function printToTerminal(textToPrint){
-	var linebreak = document.createElement("br");
-	var text = document.createElement("p");
-	text.textContent = textToPrint;
-	text.style.color = terminalTextColor;
-	terminal.prepend(linebreak, textToPrint);
+	var linebreak = document.createElement("br"); // Create line break
+	var text = document.createElement("p"); // Create paragraph
+	text.textContent = textToPrint; // Set paragraph text
+	text.style.color = terminalTextColor; // Set text colour
+	terminal.prepend(linebreak, textToPrint); //'Print' text
 }
 
 function clearTerminal(){
@@ -156,12 +156,24 @@ function debugCmd(command){
 function colorCmd(command){
 	command = command.replace("color", "").trim(); // Remove ls part of cmd and all whitespace
 
-	if(command == "0"){
-		debugStock();
-	} else if (command == "1"){
-		debugTableau();
+	if(command == "1"){
+		terminalTextColor = "#1bc615";
 	} else if (command == "2"){
-		debugBuildPile();
+		terminalTextColor = "#0037da";
+	} else if (command == "3"){
+		terminalTextColor = "#368bcc";
+	} else if (command == "4"){
+		terminalTextColor = "#c50f1f";
+	} else if (command == "5"){
+		terminalTextColor = "#6e157a";
+	} else if (command == "6"){
+		terminalTextColor = "#897004";
+	} else if (command == "7"){
+		terminalTextColor = "#cccccc";
+	} else if (command == "8"){
+		terminalTextColor = "#767676";
+	} else if (command == "9"){
+		terminalTextColor = "#3b78ff";
 	} else {
 		printToTerminal("Incorrect usage of color. Try 'help'")
 	}
