@@ -295,7 +295,7 @@ function checkCardExistance(card){
 	}
 
 	for (var column of buildPile){
-		for (var buildcard of card){
+		for (var buildcard of column){
 			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
 				return true;
 			}
@@ -378,7 +378,9 @@ function checkMoveValidity(cardToMove, cardToMoveTo){
 	}
 
 	//Check if card to move to is in build pile (check process is diffirent so it would be inefficient to go through entire check)
-	if (cardToMoveTo.inBuild){
+	printToTerminal(cardToMoveTo);
+	printToTerminal(cardToMoveTo.rank);
+	if (cardToMoveTo == "AS" || cardToMoveTo == "AC" || cardToMoveTo == "AH" || cardToMoveTo == "AD"){
 		moveToBuildPile(cardToMove, cardToMoveTo);
 	}
 
@@ -416,6 +418,7 @@ function moveAceToBuildPile(cardToMove){
 	}
 
 	cardToMove.locked = true;
+	cardToMove.inBuild = true;
 
 	var removeFrom = findWhereCardIsFrom(cardToMove);
 
