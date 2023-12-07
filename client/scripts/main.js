@@ -43,11 +43,17 @@ class Card{
 
 //Terminal stuff (Printing and clearing)
 function printToTerminal(textToPrint){
-	var linebreak = document.createElement("br"); // Create line break
 	var text = document.createElement("p"); // Create paragraph
 	text.textContent = textToPrint; // Set paragraph text
 	text.style.color = terminalTextColor; // Set text colour
-	terminal.prepend(linebreak, textToPrint); //'Print' text
+	terminal.prepend(text); //'Print' text
+}
+
+function printToTerminalArt(textToPrint){
+	var text = document.createElement("pre"); // Create paragraph
+	text.textContent = textToPrint; // Set paragraph text
+	text.style.color = terminalTextColor; // Set text colour
+	terminal.prepend(text); //'Print' text
 }
 
 function clearTerminal(){
@@ -69,6 +75,7 @@ function debugTableau(hiddenOverride){
 		}
 		printToTerminal(cardColumn);
     } 
+	printToTerminal("Tableau:")
 }
 
 function debugBuildPile(hiddenOverride){
@@ -89,14 +96,15 @@ function debugStock(){
 
 //Command processing
 function processCommand(){
+	printToTerminal("C:/users/defaultuser> " + commandEntry.value);
 	if (commandEntry.value.toLowerCase() == "p"){
 		printToTerminal("debug text");
-	} else if (commandEntry.value.toLowerCase() == "start" || commandEntry.value.toLowerCase() == "s") {
+	} else if (commandEntry.value.toLowerCase() == "start") {
 		startGame();
-	} else if (commandEntry.value.toLowerCase() == "clear" || commandEntry.value.toLowerCase() == "c") {
+	} else if (commandEntry.value.toLowerCase() == "clear") {
 		clearTerminal();
 	} else if (commandEntry.value.toLowerCase() == "help") {
-		//HELP
+		helpCmd();
 	} else if (commandEntry.value.toLowerCase() == "draw deck") {
 		drawDeck();
 	} else if (commandEntry.value.toLowerCase().includes("debug")) {
@@ -111,6 +119,10 @@ function processCommand(){
 		printToTerminal("No command found. Try 'help'")
 	}
 	commandEntry.value = '';
+}
+
+function helpCmd(){
+
 }
 
 //Commandlets
@@ -183,9 +195,18 @@ function colorCmd(command){
 //Game play functions (start game, movement, win)
 //Start game
 function startGame(){
+	clearTerminal();
 	buildDeck();
 	shuffleDeck();
 	dealDeck();
+
+	//Display the table
+	clearTerminal();
+	debugTableau();
+}
+
+function restartGame(){
+
 }
 
 //Building table
@@ -308,6 +329,8 @@ function moveCard(command){
 	if (removeFrom.length != 0){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
+
+	debugTableau();
 }
 
 function moveAceToBuildPile(cardToMove){
@@ -335,6 +358,8 @@ function moveAceToBuildPile(cardToMove){
 	if (removeFrom.length != 0){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
+
+	debugTableau();
 }
 
 function moveToBuildPile(cardToMove, cardToMoveTo){
@@ -368,6 +393,8 @@ function moveToBuildPile(cardToMove, cardToMoveTo){
 	if (removeFrom.length != 0){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
+
+	debugTableau();
 }
 
 function moveKingToEmptyColumn(cardToMove){
@@ -396,6 +423,8 @@ function moveKingToEmptyColumn(cardToMove){
 	if (removeFrom.length != 0){
 		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
 	}
+
+	debugTableau();
 }
 
 function MoveMultipleCards(removeFrom, cardToMove, Moveto){
@@ -407,6 +436,8 @@ function MoveMultipleCards(removeFrom, cardToMove, Moveto){
 			var index = removeFrom.indexOf(card);
 			removeFrom.splice(index, 1);
 		}
+
+		debugTableau();
 		return;
 	}
 }
@@ -661,6 +692,16 @@ function findCardsDeck(card){
 	}
 }
 
+//Welcome screen
+function welcomeScreen(){
+	printToTerminal("##########[END]##########");
+	printToTerminal("(or type help for assistance)")
+	printToTerminal("type start to begin a game.")
+	printToTerminal("#########################");
+	printToTerminal("Welcome to simple solitaire!")
+	printToTerminal("##########[CMD]##########");
+}
+welcomeScreen();
 
 // EVENTS
 commandEntry.addEventListener('keydown', (e) => {

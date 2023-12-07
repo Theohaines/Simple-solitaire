@@ -11,7 +11,7 @@ body{
 
 .commandEntry{
     display: block;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     background-color: #0c0c0c;
     color: #1bc615;
