@@ -10,6 +10,11 @@ var score = 0;
 var gameInProgress = false;
 var moves = 0;
 
+//Timer vars
+var [milliseconds,seconds,minutes,hours] = [0,0,0,0];
+var timerRef = document.querySelector('.timerDisplay');
+var int = null;
+
 //Deck and stock
 var deck = [];
 var stock = [];
@@ -692,6 +697,57 @@ function findCardsDeck(card){
 	}
 }
 
+//Check win state
+function checkIfGameIsWon(){
+	if (deck.length != 0){
+		return;
+	}
+
+	for (var column in tableau){
+		if (column.length != 0){
+			return;
+		}
+	}
+
+	if (stock.length != 0){
+		return;
+	}
+
+	//If game is won
+	gameHasBeenWon();
+}
+
+function gameHasBeenWon(){
+
+}
+
+// Game functions
+function gameTimer(){
+	int = setInterval(displayTimer,10);
+}
+
+function displayTimer(){
+	milliseconds+=10;
+	if(milliseconds == 1000){
+		milliseconds = 0;
+		seconds++;
+		if(seconds == 60){
+			seconds = 0;
+			minutes++;
+			if(minutes == 60){
+				minutes = 0;
+				hours++;
+			}
+		}
+	}
+	let h = hours < 10 ? "0" + hours : hours;
+	let m = minutes < 10 ? "0" + minutes : minutes;
+	let s = seconds < 10 ? "0" + seconds : seconds;
+	let ms = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
+
+	printToTerminal(` ${h} : ${m} : ${s} : ${ms}`);
+}
+
 //Welcome screen
 function welcomeScreen(){
 	printToTerminal("##########[END]##########");
@@ -702,7 +758,7 @@ function welcomeScreen(){
 	printToTerminal("##########[CMD]##########");
 }
 welcomeScreen();
-
+//gameTimer();
 // EVENTS
 commandEntry.addEventListener('keydown', (e) => {
 	if (e.key === 'Enter' || e.keyCode === 13) { // using keycode for old browsers
