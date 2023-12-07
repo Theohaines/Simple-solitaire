@@ -37,6 +37,7 @@ class Card{
 	}
 }
 
+//Terminal stuff (Printing and clearing)
 function printToTerminal(textToPrint){
 	var linebreak = document.createElement("br");
 	var textNode = document.createTextNode(textToPrint); terminal.prepend(linebreak ,textNode);
@@ -46,6 +47,7 @@ function clearTerminal(){
 	terminal.innerHTML = '';
 }
 
+//Debug stuff
 function debugDeck(){
 	for (var card of deck){
 		printToTerminal(card.toString(true));
@@ -78,6 +80,31 @@ function debugStock(){
 	}
 }
 
+//Command processing
+function processCommand(){
+	if (commandEntry.value.toLowerCase() == "p"){
+		printToTerminal("debug text");
+	} else if (commandEntry.value.toLowerCase() == "start" || commandEntry.value.toLowerCase() == "s") {
+		startGame();
+	} else if (commandEntry.value.toLowerCase() == "clear" || commandEntry.value.toLowerCase() == "c") {
+		clearTerminal();
+	} else if (commandEntry.value.toLowerCase() == "help") {
+		//HELP
+	} else if (commandEntry.value.toLowerCase() == "draw deck") {
+		drawDeck();
+	} else if (commandEntry.value.toLowerCase().includes("debug")) {
+		debugCmd(commandEntry.value.toLowerCase());
+	} else if (commandEntry.value.toLowerCase().includes("ls")) {
+		lsCmd(commandEntry.value.toLowerCase());
+	} else if (commandEntry.value.toLowerCase().includes("move")) {
+		moveCard(commandEntry.value.toLowerCase());
+	} else {
+		printToTerminal("No command found. Try 'help'")
+	}
+	commandEntry.value = '';
+}
+
+//Commandlets
 function lsCmd(command){
 	command = command.replace("ls", "").trim(); // Remove ls part of cmd and all whitespace
 
@@ -117,243 +144,7 @@ function debugCmd(command){
 	commandEntry.value = '';
 }
 
-function processCommand(){
-	if (commandEntry.value.toLowerCase() == "p"){
-		printToTerminal("debug text");
-	} else if (commandEntry.value.toLowerCase() == "start" || commandEntry.value.toLowerCase() == "s") {
-		startGame();
-	} else if (commandEntry.value.toLowerCase() == "clear" || commandEntry.value.toLowerCase() == "c") {
-		clearTerminal();
-	} else if (commandEntry.value.toLowerCase() == "help") {
-		//HELP
-	} else if (commandEntry.value.toLowerCase() == "draw deck") {
-		drawDeck();
-	} else if (commandEntry.value.toLowerCase().includes("debug")) {
-		debugCmd(commandEntry.value.toLowerCase());
-	} else if (commandEntry.value.toLowerCase().includes("ls")) {
-		lsCmd(commandEntry.value.toLowerCase());
-	} else if (commandEntry.value.toLowerCase().includes("move")) {
-		moveCard(commandEntry.value.toLowerCase());
-	} else {
-		printToTerminal("No command found. Try 'help'")
-	}
-	commandEntry.value = '';
-}
-
-function moveAceToBuildPile(cardToMove){
-	//This is the process to move an ace to a build pile
-
-	for (var column of buildPile){
-		if (column.length == 0){
-			var buildPileToMoveTo = column;
-			break;
-		}
-	}
-
-	cardToMove.locked = true;
-	cardToMove.inBuild = true;
-
-	var removeFrom = findWhereCardIsFrom(cardToMove);
-
-	buildPileToMoveTo.push(cardToMove);
-
-	var index = removeFrom.indexOf(cardToMove);
-	removeFrom.splice(index, 1);
-
-	//Update column we took card from
-	
-	if (removeFrom.length != 0){
-		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
-	}
-}
-
-function moveToBuildPile(cardToMove, cardToMoveTo){
-	//This is the process to move a card to a build pile
-	if (cardToMove.suit != cardToMoveTo.suit){
-		printToTerminal("I don't know how we got here this shouldn't be possible.");
-		return;
-	}
-
-	isCardAscending = checkCardAscendingOrder(cardToMove, cardToMoveTo);
-	if (!isCardAscending){
-		printToTerminal("You cannot move to that position because the card isn't going ontop of a card ranked one lower than itself.");
-		return;
-	}
-
-	var removeFrom = findWhereCardIsFrom(cardToMove);
-	var moveTo = findWhereCardIsFrom(cardToMoveTo);
-
-	if (checkCardsOnTop(removeFrom, cardToMove)){
-		printToTerminal("You cannot move this to the build pile as it has cards on top of it.")
-		return;
-	}
-
-	moveTo.push(cardToMove);
-
-	var index = removeFrom.indexOf(cardToMove);
-	removeFrom.splice(index, 1);
-
-	//Update column we took card from
-	
-	if (removeFrom.length != 0){
-		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
-	}
-}
-
-function moveKingToEmptyColumn(cardToMove){
-	//This is the process for moving kings to empty piles
-
-	for (var column of tableau){
-		if (column.length == 0){
-			var columnToMoveTo = column;
-			break;
-		}
-	}
-
-	var removeFrom = findWhereCardIsFrom(cardToMove);
-
-	if (checkCardsOnTop(removeFrom, cardToMove)){
-		MoveMultipleCards(removeFrom, cardToMove, columnToMoveTo);
-		return;
-	}
-
-	columnToMoveTo.push(cardToMove);
-
-	var index = removeFrom.indexOf(cardToMove);
-	removeFrom.splice(index, 1);
-
-	//Update column we took card from
-	if (removeFrom.length != 0){
-		CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
-	}
-}
-
-function checkCardDescendingOrder(cardToMove, cardToMoveTo){
-	if(cardToMove.rank == "K"){
-		// CAN ONLY BE MOVED TO EMPTY SPACE
-	} else if (cardToMove.rank == "Q" && cardToMoveTo.rank == "K"){
-		return true;
-	} else if (cardToMove.rank == "J" && cardToMoveTo.rank == "Q"){
-		return true;
-	} else if (cardToMove.rank == "10" && cardToMoveTo.rank == "J"){
-		return true;
-	} else if (cardToMove.rank == "9" && cardToMoveTo.rank == "10"){
-		return true;
-	} else if (cardToMove.rank == "8" && cardToMoveTo.rank == "9"){
-		return true;
-	} else if (cardToMove.rank == "7" && cardToMoveTo.rank == "8"){
-		return true;
-	} else if (cardToMove.rank == "6" && cardToMoveTo.rank == "7"){
-		return true;
-	} else if (cardToMove.rank == "5" && cardToMoveTo.rank == "6"){
-		return true;
-	} else if (cardToMove.rank == "4" && cardToMoveTo.rank == "5"){
-		return true;
-	} else if (cardToMove.rank == "3" && cardToMoveTo.rank == "4"){
-		return true;
-	} else if (cardToMove.rank == "2" && cardToMoveTo.rank == "3"){
-		return true;
-	} else if (cardToMove.rank == "A" && cardToMoveTo.rank == "2"){
-		return true;
-	}
-	return false;
-}
-
-function checkCardAscendingOrder(cardToMove, cardToMoveTo){
-	if(cardToMove.rank == "A"){
-		printToTerminal("Acheivement: How did we get here?");
-	} else if (cardToMove.rank == "2" && cardToMoveTo.rank == "A"){
-		return true;
-	} else if (cardToMove.rank == "3" && cardToMoveTo.rank == "2"){
-		return true;
-	} else if (cardToMove.rank == "4" && cardToMoveTo.rank == "3"){
-		return true;
-	} else if (cardToMove.rank == "5" && cardToMoveTo.rank == "4"){
-		return true;
-	}  else if (cardToMove.rank == "6" && cardToMoveTo.rank == "5"){
-		return true;
-	}  else if (cardToMove.rank == "7" && cardToMoveTo.rank == "6"){
-		return true;
-	}  else if (cardToMove.rank == "8" && cardToMoveTo.rank == "7"){
-		return true;
-	}  else if (cardToMove.rank == "9" && cardToMoveTo.rank == "8"){
-		return true;
-	}  else if (cardToMove.rank == "10" && cardToMoveTo.rank == "9"){
-		return true;
-	}  else if (cardToMove.rank == "J" && cardToMoveTo.rank == "10"){
-		return true;
-	}  else if (cardToMove.rank == "Q" && cardToMoveTo.rank == "J"){
-		return true;
-	}  else if (cardToMove.rank == "K" && cardToMoveTo.rank == "Q"){
-		return true;
-	} 
-	return false;
-}
-
-function findWhereCardIsFrom(card){
-	for (var deckcard of deck){
-		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return deck;
-		}
-	}
-
-	for (var column of tableau){
-		for (var tableaucard of column){
-			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-				return column;
-			}
-		}
-	}
-
-	for (var column of buildPile){
-		for (var buildcard of column){
-			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-				return column;
-			}
-		}
-	}
-
-	for (var stockcard of stock){
-		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-			return stock;
-		}
-	}
-	return false;
-}
-
-function findCardsDeck(card){
-	for (var column of tableau){
-		for (var tableaucard of column){
-			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
-				return column;
-			}
-		}
-	}
-}
-
-function checkCardsOnTop(removeFrom, cardToMove){
-	if (removeFrom[removeFrom.length - 1] != cardToMove){
-		return true;
-	}
-
-	return false;
-}
-
-function MoveMultipleCards(removeFrom, cardToMove, Moveto){
-	if (removeFrom[removeFrom.length - 1] != cardToMove){
-		var cardsToMove = removeFrom.length - removeFrom.indexOf(cardToMove);
-		cardsToSwap = removeFrom.slice(-cardsToMove);
-		for (var card of cardsToSwap){
-			Moveto.push(card);
-			var index = removeFrom.indexOf(card);
-			removeFrom.splice(index, 1);
-		}
-		return;
-	}
-}
-
 //Game play functions (start game, movement, win)
-
 //Start game
 function startGame(){
 	buildDeck();
@@ -571,6 +362,19 @@ function moveKingToEmptyColumn(cardToMove){
 	}
 }
 
+function MoveMultipleCards(removeFrom, cardToMove, Moveto){
+	if (removeFrom[removeFrom.length - 1] != cardToMove){
+		var cardsToMove = removeFrom.length - removeFrom.indexOf(cardToMove);
+		cardsToSwap = removeFrom.slice(-cardsToMove);
+		for (var card of cardsToSwap){
+			Moveto.push(card);
+			var index = removeFrom.indexOf(card);
+			removeFrom.splice(index, 1);
+		}
+		return;
+	}
+}
+
 //Validity checks
 function checkCardExistance(card){
 	if (card.toLowerCase() == "buildpile"){
@@ -671,6 +475,76 @@ function checkMoveValidity(cardToMove, cardToMoveTo){
 	return true;
 }
 
+function checkCardDescendingOrder(cardToMove, cardToMoveTo){
+	if(cardToMove.rank == "K"){
+		// CAN ONLY BE MOVED TO EMPTY SPACE
+	} else if (cardToMove.rank == "Q" && cardToMoveTo.rank == "K"){
+		return true;
+	} else if (cardToMove.rank == "J" && cardToMoveTo.rank == "Q"){
+		return true;
+	} else if (cardToMove.rank == "10" && cardToMoveTo.rank == "J"){
+		return true;
+	} else if (cardToMove.rank == "9" && cardToMoveTo.rank == "10"){
+		return true;
+	} else if (cardToMove.rank == "8" && cardToMoveTo.rank == "9"){
+		return true;
+	} else if (cardToMove.rank == "7" && cardToMoveTo.rank == "8"){
+		return true;
+	} else if (cardToMove.rank == "6" && cardToMoveTo.rank == "7"){
+		return true;
+	} else if (cardToMove.rank == "5" && cardToMoveTo.rank == "6"){
+		return true;
+	} else if (cardToMove.rank == "4" && cardToMoveTo.rank == "5"){
+		return true;
+	} else if (cardToMove.rank == "3" && cardToMoveTo.rank == "4"){
+		return true;
+	} else if (cardToMove.rank == "2" && cardToMoveTo.rank == "3"){
+		return true;
+	} else if (cardToMove.rank == "A" && cardToMoveTo.rank == "2"){
+		return true;
+	}
+	return false;
+}
+
+function checkCardAscendingOrder(cardToMove, cardToMoveTo){
+	if(cardToMove.rank == "A"){
+		printToTerminal("Acheivement: How did we get here?");
+	} else if (cardToMove.rank == "2" && cardToMoveTo.rank == "A"){
+		return true;
+	} else if (cardToMove.rank == "3" && cardToMoveTo.rank == "2"){
+		return true;
+	} else if (cardToMove.rank == "4" && cardToMoveTo.rank == "3"){
+		return true;
+	} else if (cardToMove.rank == "5" && cardToMoveTo.rank == "4"){
+		return true;
+	}  else if (cardToMove.rank == "6" && cardToMoveTo.rank == "5"){
+		return true;
+	}  else if (cardToMove.rank == "7" && cardToMoveTo.rank == "6"){
+		return true;
+	}  else if (cardToMove.rank == "8" && cardToMoveTo.rank == "7"){
+		return true;
+	}  else if (cardToMove.rank == "9" && cardToMoveTo.rank == "8"){
+		return true;
+	}  else if (cardToMove.rank == "10" && cardToMoveTo.rank == "9"){
+		return true;
+	}  else if (cardToMove.rank == "J" && cardToMoveTo.rank == "10"){
+		return true;
+	}  else if (cardToMove.rank == "Q" && cardToMoveTo.rank == "J"){
+		return true;
+	}  else if (cardToMove.rank == "K" && cardToMoveTo.rank == "Q"){
+		return true;
+	} 
+	return false;
+}
+
+function checkCardsOnTop(removeFrom, cardToMove){
+	if (removeFrom[removeFrom.length - 1] != cardToMove){
+		return true;
+	}
+
+	return false;
+}
+
 //Card manipulation
 function getCardReference(card){
 	if (card.toLowerCase() == "buildpile"){
@@ -706,6 +580,47 @@ function getCardReference(card){
 	for (var stockcard of stock){
 		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
 			return stockcard;
+		}
+	}
+}
+
+function findWhereCardIsFrom(card){
+	for (var deckcard of deck){
+		if (deckcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return deck;
+		}
+	}
+
+	for (var column of tableau){
+		for (var tableaucard of column){
+			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return column;
+			}
+		}
+	}
+
+	for (var column of buildPile){
+		for (var buildcard of column){
+			if (buildcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return column;
+			}
+		}
+	}
+
+	for (var stockcard of stock){
+		if (stockcard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+			return stock;
+		}
+	}
+	return false;
+}
+
+function findCardsDeck(card){
+	for (var column of tableau){
+		for (var tableaucard of column){
+			if (tableaucard.toString(true) == card.toString(true).toUpperCase()){ // Messy logic but hey it works
+				return column;
+			}
 		}
 	}
 }
