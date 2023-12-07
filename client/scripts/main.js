@@ -98,6 +98,15 @@ function debugCmd(command){
 		debugTableau(true);
 	} else if (command == "buildpile"){
 		debugBuildPile(true);
+	} else if (command == "hidden"){
+		for (var card of deck){
+			card.hidden = false;
+		}
+		for (var column of tableau){
+			for (var card of column){
+				card.hidden = false;
+			}
+		}
 	} else {
 		printToTerminal("Incorrect usage of debug. Try 'help'")
 	}
@@ -235,10 +244,21 @@ function moveCard(command){
 	var removeFrom = findWhereCardIsFrom(cardToMove);
 	var Moveto = findWhereCardIsFrom(cardToMoveTo);
 
-	// Moving multiple cards
+	if (removeFrom == Moveto){
+		printToTerminal("Can't move card to the same place its in");
+		return;
+	}
+
+	// Moving multiple cards (PLEASE NEVER REWORK I DONT UNDERSTAND HOW THIS WORKS)
 	if (removeFrom[removeFrom.length - 1] != cardToMove){
-		var cardsToMove = removeFrom.length - cardToMove.index;
-		printToTerminal(cardsToMove);
+		var cardsToMove = removeFrom.length - removeFrom.indexOf(cardToMove);
+		cardsToSwap = removeFrom.slice(-cardsToMove);
+		for (var card of cardsToSwap){
+			Moveto.push(card);
+			var index = removeFrom.indexOf(card);
+			removeFrom.splice(index, 1);
+		}
+		return;
 	}
 
 	Moveto.push(cardToMove);
@@ -343,7 +363,7 @@ function checkMoveValidity(cardToMove, cardToMoveTo){
 		}
 	}
 
-	//Check if card to move it is column
+	//Check if card to move if it is column
 	if (cardToMoveTo == "column"){
 		if (cardToMove.rank == "K"){
 			moveKingToEmptyColumn(cardToMove);
@@ -428,6 +448,11 @@ function moveToBuildPile(cardToMove, cardToMoveTo){
 	var removeFrom = findWhereCardIsFrom(cardToMove);
 	var moveTo = findWhereCardIsFrom(cardToMoveTo);
 
+	if (checkCardsOnTop(removeFrom, cardToMove)){
+		printToTerminal("You cannot move this to the build pile as it has cards on top of it.")
+		return;
+	}
+
 	moveTo.push(cardToMove);
 
 	var index = removeFrom.indexOf(cardToMove);
@@ -451,6 +476,11 @@ function moveKingToEmptyColumn(cardToMove){
 	}
 
 	var removeFrom = findWhereCardIsFrom(cardToMove);
+
+	if (checkCardsOnTop(removeFrom, cardToMove)){
+		MoveMultipleCards(removeFrom, cardToMove, columnToMoveTo);
+		return;
+	}
 
 	columnToMoveTo.push(cardToMove);
 
@@ -563,6 +593,27 @@ function findCardsDeck(card){
 				return column;
 			}
 		}
+	}
+}
+
+function checkCardsOnTop(removeFrom, cardToMove){
+	if (removeFrom[removeFrom.length - 1] != cardToMove){
+		return true;
+	}
+
+	return false;
+}
+
+function MoveMultipleCards(removeFrom, cardToMove, Moveto){
+	if (removeFrom[removeFrom.length - 1] != cardToMove){
+		var cardsToMove = removeFrom.length - removeFrom.indexOf(cardToMove);
+		cardsToSwap = removeFrom.slice(-cardsToMove);
+		for (var card of cardsToSwap){
+			Moveto.push(card);
+			var index = removeFrom.indexOf(card);
+			removeFrom.splice(index, 1);
+		}
+		return;
 	}
 }
 
