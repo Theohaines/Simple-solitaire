@@ -884,7 +884,9 @@ function welcomeScreen(){
 	printToTerminal("(or type help for assistance)")
 	printToTerminal("type start to begin a game.")
 	printToTerminal("#########################");
-	printToTerminal("[PUBLIC BETA BUILD]")
+	printToTerminal("Find a bug? report it! me@theohaines.xyz")
+	printToTerminal("Game by Theo Haines @ theohaines.xyz");
+	printToTerminal("[PUBLIC BETA BUILD]");
 	printToTerminal("Welcome to simple solitaire!")
 	printToTerminal("##########[CMD]##########");
 }
