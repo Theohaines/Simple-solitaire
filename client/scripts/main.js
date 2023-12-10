@@ -6,7 +6,6 @@ const terminal = document.getElementById("terminal");
 var terminalTextColor = "#1bc615";
 
 //Game vars
-var score = 0;
 var gameInProgress = false;
 var moves = 0;
 
@@ -98,6 +97,25 @@ function debugStock(){
 	}
 }
 
+function debugTimer(){
+	printToTerminal("#####");
+	printToTerminal("Time: " + ` ${h} : ${m} : ${s} : ${ms}`);
+	printToTerminal("#####");
+}
+
+function debugMoves(){
+	printToTerminal("#####");
+	printToTerminal("Moves: " + moves.toString());
+	printToTerminal("#####");
+}
+
+function debugAllStats(){
+	printToTerminal("#####");
+	printToTerminal("Time: " + ` ${h} : ${m} : ${s} : ${ms}`);
+	printToTerminal("Moves: " + moves.toString());
+	printToTerminal("#####");
+}
+
 //Command processing
 function processCommand(){
 	printToTerminal("C:/users/defaultuser> " + commandEntry.value);
@@ -163,6 +181,9 @@ function helpCmd(command){
 		printToTerminal(`===========================================================================`);
 	} else if (command == "ls"){
 		printToTerminal(`===========================================================================`);
+		printToTerminal("+ stats");
+		printToTerminal("+ moves");
+		printToTerminal("+ time");
 		printToTerminal("+ stock");
 		printToTerminal("+ buildpile");
 		printToTerminal("+ tableau");
@@ -209,6 +230,12 @@ function lsCmd(command){
 		debugTableau();
 	} else if (command == "buildpile"){
 		debugBuildPile();
+	} else if (command == "moves"){
+		debugMoves();
+	} else if (command == "time"){
+		debugTimer();
+	} else if (command == "stats"){
+		debugAllStats();
 	} else {
 		printToTerminal("Incorrect usage of ls. Try 'help'")
 	}
@@ -799,7 +826,6 @@ function gameHasBeenWon(){
 	printToTerminal("##########[END]##########");
 	printToTerminal("(Type start to play again.)");
 	printToTerminal("#########################");
-	printToTerminal("Score: " + score.toString());
 	printToTerminal("Moves: " + moves.toString());
 	printToTerminal("Time: " + ` ${h} : ${m} : ${s} : ${ms}`);
 	printToTerminal("Your scores:");
