@@ -539,6 +539,10 @@ function MoveMultipleCards(removeFrom, cardToMove, Moveto){
 			removeFrom.splice(index, 1);
 		}
 
+		if (removeFrom.length != 0){
+			CardToMakeVisible = removeFrom[removeFrom.length - 1].hidden = false;
+		}
+
 		checkIfGameIsWon();
 		debugTableau();
 		return;
@@ -880,6 +884,7 @@ function welcomeScreen(){
 	printToTerminal("(or type help for assistance)")
 	printToTerminal("type start to begin a game.")
 	printToTerminal("#########################");
+	printToTerminal("[PUBLIC BETA BUILD]")
 	printToTerminal("Welcome to simple solitaire!")
 	printToTerminal("##########[CMD]##########");
 }
