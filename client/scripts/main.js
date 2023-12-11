@@ -4,6 +4,8 @@ const terminal = document.getElementById("terminal");
 
 //Terminal vars
 var terminalTextColor = "#1bc615";
+var scrollBackCommands = ["", "HELP"];
+var scrollBackIndex = 0;
 
 //Game vars
 var gameInProgress = false;
@@ -63,6 +65,10 @@ function clearTerminal(){
 	terminal.innerHTML = '';
 }
 
+function scrollBack(){
+	commandEntry.value = scrollBackCommands[scrollBackIndex];
+}
+
 //Debug stuff
 function debugDeck(){
 	for (var card of deck){
@@ -119,6 +125,7 @@ function debugAllStats(){
 //Command processing
 function processCommand(){
 	printToTerminal("C:/users/defaultuser> " + commandEntry.value);
+	scrollBackCommands.push(commandEntry.value);
 	if (commandEntry.value.toLowerCase() == "p"){
 		printToTerminal("debug text");
 	} else if (commandEntry.value.toLowerCase() == "start") {
@@ -896,5 +903,19 @@ welcomeScreen();
 commandEntry.addEventListener('keydown', (e) => {
 	if (e.key === 'Enter' || e.keyCode === 13) { // using keycode for old browsers
 		processCommand();
+	}
+});
+
+commandEntry.addEventListener('keydown', (e) => {
+	if (e.key === 'Up' || e.keyCode == "38") {
+		scrollBackIndex++;
+		scrollBack();
+	}
+});
+
+commandEntry.addEventListener('keydown', (e) => {
+	if (e.key === 'Down' || e.keyCode == '40') {
+		scrollBackIndex--;
+		scrollBack();
 	}
 });
