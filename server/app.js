@@ -9,6 +9,6 @@ app.get("/", async (req, res) => {
     res.sendFile(path.resolve("client/index.html"));
 });
 
-app.listen(80, () => {
+app.listen(8080, () => {
     console.log("Server running on port 80");
 });
