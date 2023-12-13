@@ -10,6 +10,10 @@ var gameInProgress = false;
 var moves = 0;
 
 //Timer vars
+let h = hours < 10 ? "0" + hours : hours;
+let m = minutes < 10 ? "0" + minutes : minutes;
+let s = seconds < 10 ? "0" + seconds : seconds;
+let ms = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
 var [milliseconds,seconds,minutes,hours] = [0,0,0,0];
 var int = null;
 
@@ -821,10 +825,6 @@ function checkIfGameIsWon(){
 
 function gameHasBeenWon(){
 	clearInterval(int);
-	let h = hours < 10 ? "0" + hours : hours;
-	let m = minutes < 10 ? "0" + minutes : minutes;
-	let s = seconds < 10 ? "0" + seconds : seconds;
-	let ms = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
 
 	clearTerminal();
 	printToTerminal("##########[END]##########");
@@ -857,6 +857,11 @@ function displayTimer(){
 			}
 		}
 	}
+
+	h = hours < 10 ? "0" + hours : hours;
+	m = minutes < 10 ? "0" + minutes : minutes;
+	s = seconds < 10 ? "0" + seconds : seconds;
+	ms = milliseconds < 10 ? "00" + milliseconds : milliseconds < 100 ? "0" + milliseconds : milliseconds;
 }
 
 function resetTimer(){
@@ -886,7 +891,7 @@ function welcomeScreen(){
 	printToTerminal("#########################");
 	printToTerminal("Find a bug? report it! me@theohaines.xyz")
 	printToTerminal("Game by Theo Haines @ theohaines.xyz");
-	printToTerminal("[PUBLIC BETA BUILD]");
+	printToTerminal("[PUBLIC BETA BUILD] (ver 0.1.1)");
 	printToTerminal("Welcome to simple solitaire!")
 	printToTerminal("##########[CMD]##########");
 }
